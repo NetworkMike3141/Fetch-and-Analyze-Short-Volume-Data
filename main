@@ -1,0 +1,48 @@
+import requests
+import pandas as pd
+from datetime import date, timedelta
+import io
+
+# Get yesterday's date
+yesterday = date.today() - timedelta(days=1)
+
+# Format yesterday's date as YYYYMMDD
+formatted_date = yesterday.strftime("%Y%m%d")
+
+# Base URL for the file
+base_url = "https://cdn.finra.org/equity/regsho/daily/FNQCshvol"
+
+# Construct the full URL with yesterday's date
+url = f"{base_url}{formatted_date}.txt"
+
+# Fetch the data from the URL
+response = requests.get(url)
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Read the data into a pandas DataFrame
+    data = pd.read_csv(io.StringIO(response.text), delimiter="|")
+
+    # Write the DataFrame to an Excel file
+    data.to_excel("output.xlsx", index=False, header=True)
+    print("Data written to output.xlsx")
+
+    # Read the Excel sheet into a pandas DataFrame
+    df = pd.read_excel('output.xlsx')
+
+    # Ensure the necessary columns are in the DataFrame and create a new column for the sum
+    if 'ShortVolume' in df.columns and 'ShortExemptVolume' in df.columns:
+        df['TotalShortVolume'] = df['ShortVolume'] + df['ShortExemptVolume']
+
+        # Sort the DataFrame by the new 'TotalShortVolume' column in descending order
+        df = df.sort_values(by='TotalShortVolume', ascending=False)
+
+        # Select the top 100 rows
+        top_100 = df.head(100)
+
+        # Print the result with all rows
+        print(top_100.to_string(index=False))
+    else:
+        print("Required columns ('ShortVolume' and/or 'ShortExemptVolume') are missing.")
+else:
+    print(f"Failed to fetch data from {url}")
