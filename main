@@ -10,7 +10,7 @@ yesterday = date.today() - timedelta(days=1)
 formatted_date = yesterday.strftime("%Y%m%d")
 
 # Base URL for the file
-base_url = "https://cdn.finra.org/equity/regsho/daily/FNQCshvol"
+base_url = "https://cdn.finra.org/equity/regsho/daily/FNSQshvol"
 
 # Construct the full URL with yesterday's date
 url = f"{base_url}{formatted_date}.txt"
